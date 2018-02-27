@@ -21,6 +21,7 @@ BLACK = (125,125,125,255)
 WHITE  = (255,255,255,255)
 RED = (255,50,50,255)
 GREEN = (0,255,0,255)
+BLUE = (50,50,255,255)
 for i in range(grid_y):
     grid.append([])
 for i in grid:
@@ -35,7 +36,15 @@ class snake():
         self.f = 0
         self.c = color
         for i in range(t_size):
-            self.tail.append([self.x - i,self.y])
+            if self.d == 1:
+                self.tail.append([self.x - i,self.y])
+            if self.d == 2:
+                self.tail.append([self.x,self.y-i])
+            if self.d == 3:
+                self.tail.append([self.x + i,self.y])
+            if self.d == 0:
+                self.tail.append([self.x,self.y + i])
+            
     def update(self):
         if self.d == 1:
             self.x+= 1
@@ -62,6 +71,8 @@ class snake():
 
         if grid[self.y][self.x] ==s.c:
             self.die()
+        if grid[self.y][self.x] ==a.c:
+            self.die()
 
         if self.f ==0:
 
@@ -84,9 +95,17 @@ class snake():
         self.d= 0
         self.tail = []
         self.f = 0
-        for i in range(3):
-            self.tail.append([self.x - i,self.y])
-s = snake(grid_x//3,grid_y//2,1,3,WHITE)
+        for i in range(t_size):
+            if self.d == 1:
+                self.tail.append([self.x - i,self.y])
+            if self.d == 2:
+                self.tail.append([self.x,self.y-i])
+            if self.d == 3:
+                self.tail.append([self.x + i,self.y])
+            if self.d == 0:
+                self.tail.append([self.x,self.y + i])
+s = snake(grid_x//3,grid_y//2,2,3,WHITE)
+a = snake(2*grid_x//3,grid_y//2,0,3,BLUE)
 
 class food():
     def __init__(self,pos_x,pos_y):
@@ -105,11 +124,14 @@ f_q =2
 for i in range(f_q):
     food_l.append(food(randint(1,grid_x-2),randint(1,grid_y-2)))
 des_d = s.d
+desa_d = a.d
 while True:
     act_ti = 0.15
     if time.clock()-t > act_ti:
         s.d = des_d
         s.update()
+        a.d = desa_d
+        a.update()
         windowSurface.fill(BLACK)
         for i in food_l:
             i.represent()
@@ -137,3 +159,15 @@ while True:
     if keys[K_UP]:
         if s.d !=2:
             des_d = 0
+    if keys[K_a]:
+        if a.d != 1:
+            desa_d = 3
+    if keys[K_s]:
+        if a.d != 0:
+            desa_d = 2
+    if keys[K_d]:
+        if a.d != 3:
+            desa_d = 1
+    if keys[K_w]:
+        if a.d != 2:
+            desa_d = 0
