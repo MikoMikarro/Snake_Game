@@ -7,8 +7,9 @@ from time import sleep
 # set up pygame
 pygame.init()
 pix_siz = 10
-grid_x = 32
-grid_y = 32
+grid_x = 16
+grid_y = 16
+grid = []
 
 width = pix_siz*grid_x
 height = pix_siz*grid_y
@@ -16,96 +17,107 @@ height = pix_siz*grid_y
 windowSurface = pygame.display.set_mode((width, height), 0, 32)
 pygame.display.set_caption('Snake Game')
 
-BLACK = (50,50,50,255)
+BLACK = (125,125,125,255)
 WHITE  = (255,255,255,255)
-RED = (255,200,200,255)
+RED = (255,50,50,255)
 GREEN = (0,255,0,255)
-
+for i in range(grid_y):
+    grid.append([])
+for i in grid:
+    for l in range(grid_x):
+        i.append(BLACK)
 class snake():
-    def __init__(self,pos_x,pos_y,dire,t_size):
+    def __init__(self,pos_x,pos_y,dire,t_size,color):
         self.x = pos_x
         self.y = pos_y
         self.d = dire
         self.tail = []
         self.f = 0
+        self.c = color
         for i in range(t_size):
-            self.tail.append([self.x - i*pix_siz,self.y])
+            self.tail.append([self.x - i,self.y])
     def update(self):
-
         if self.d == 1:
-            self.x+= pix_siz
+            self.x+= 1
         if self.d == 2:
-            self.y+=pix_siz
+            self.y+=1
         if self.d == 3:
-            self.x-= pix_siz
+            self.x-= 1
         if self.d == 0:
-            self.y-= pix_siz
-        if self.x > width-1:
+            self.y-= 1
+        if self.x > grid_x-1:
             self.x = 0
         if self.x <0:
-            self.x = width-1-pix_siz
+            self.x = grid_x-1
         if self.y <0:
-            self.y = height-1-pix_siz
-        if self.y > height-1:
+            self.y = grid_y-1
+        if self.y > grid_y-1:
             self.y = 0
-        if windowSurface.get_at((self.x,self.y)) == GREEN:
+        if grid[self.y][self.x] == GREEN:
             for i in food_l:
-                if abs(self.x-i.x+1)<=5 and abs(self.y-i.y+1)<=5:
+                if self.x == i.x and self.y == i.y:
                     i.move()
                     self.f += 2
 
 
-        if windowSurface.get_at((self.x,self.y)) ==WHITE:
-            self.x =399
-            self.y = 399
-            self.d= 0
-            self.tail = []
-            self.f = 0
-            for i in range(3):
-                self.tail.append([self.x - i*pix_siz,self.y])
+        if grid[self.y][self.x] ==s.c:
+            self.die()
 
         if self.f ==0:
 
             self.tail.insert(0,[self.x,self.y])
+            grid[self.tail[-1][1]][self.tail[-1][0]] = BLACK
             self.tail.pop(len(self.tail)-1)
         else:
 
             self.tail.insert(0,[self.x,self.y])
-            print len(self.tail)
             self.f-=1
     def represent(self):
-        pygame.draw.rect(windowSurface,RED,(self.tail[0][0],self.tail[0][1],pix_siz,pix_siz))
+        grid[self.y][self.x] = RED
         for i in self.tail[1:]:
-            pygame.draw.rect(windowSurface,WHITE,(i[0],i[1],pix_siz,pix_siz))
-s = snake(399,399,1,3)
+            grid[i[1]][i[0]] = self.c
+    def die(self):
+        for i in self.tail:
+            grid[i[1]][i[0]] = BLACK
+        self.x =grid_x//2
+        self.y = grid_y//2
+        self.d= 0
+        self.tail = []
+        self.f = 0
+        for i in range(3):
+            self.tail.append([self.x - i,self.y])
+s = snake(grid_x//3,grid_y//2,1,3,WHITE)
 
 class food():
     def __init__(self,pos_x,pos_y):
         self.x = pos_x
         self.y = pos_y
     def represent(self):
-        pygame.draw.rect(windowSurface,GREEN,(self.x,self.y,pix_siz*1,pix_siz*1))
+        grid[self.y][self.x] = GREEN
     def move(self):
-        self.x = randint(1,grid_x-2)*pix_siz
-        self.y = randint(1,grid_y-2)*pix_siz
-        if windowSurface.get_at((self.x,self.y)) ==WHITE:
+        self.x = randint(1,grid_x-2)
+        self.y = randint(1,grid_y-2)
+        if grid[self.y][self.x] == s.c:
             self.move()
 t = time.clock()
 food_l = []
 f_q =2
 for i in range(f_q):
-    food_l.append(food(randint(1,grid_x-2)*pix_siz,randint(1,grid_y-2)*pix_siz))
+    food_l.append(food(randint(1,grid_x-2),randint(1,grid_y-2)))
 des_d = s.d
 while True:
-
-    act_ti = 0.11
+    act_ti = 0.15
     if time.clock()-t > act_ti:
         s.d = des_d
+        s.update()
         windowSurface.fill(BLACK)
         for i in food_l:
             i.represent()
         s.represent()
-        s.update()
+        for i in range(grid_y):
+            for l in range(grid_x):
+
+                pygame.draw.rect(windowSurface,grid[i][l],(l*pix_siz+1,i*pix_siz+1,pix_siz-1,pix_siz-1))
         pygame.display.update()
         t = time.clock()
     for event in pygame.event.get():
